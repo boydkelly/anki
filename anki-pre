@@ -1,0 +1,27 @@
+#!/bin/bash
+[[ -f "/run/.containerenv" ]] && {
+  echo "Run this on host"
+  exit
+}
+
+uid=$(id -u)
+runtime_dir="/run/user/$uid"
+podman volume inspect anki-install &>/dev/null || podman volume create anki-install
+podman volume inspect anki-data &>/dev/null || podman volume create anki-data
+
+podman run --rm -it \
+  --env DISPLAY \
+  --env WAYLAND_DISPLAY \
+  --env XDG_RUNTIME_DIR="$runtime_dir" \
+  --env ANKI_WAYLAND=1 \
+  -v "$runtime_dir:$runtime_dir" \
+  -v "$runtime_dir/wayland-0:$runtime_dir/wayland-0" \
+  -v "$runtime_dir/bus:$runtime_dir/bus" \
+  -v anki-install:/usr/local/anki:Z \
+  -v anki-data:/workdir/Anki2:Z \
+  -v "$HOME/.local/share/Anki2:/workdir/host-anki-base:Z" \
+  --device /dev/dri \
+  --security-opt=label=type:container_runtime_t \
+  --replace \
+  --name=anki \
+  localhost/anki "$@"

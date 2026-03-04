@@ -1,0 +1,59 @@
+name: Update Anki and Trigger COPR
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs every day at midnight
+  workflow_dispatch:      # Allows you to trigger it manually for testing
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout your repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest Anki version
+        id: anki
+        run: |
+          # Fetch the latest tag from the official repo, stripping the 'v'
+          LATEST=$(curl -s https://api.github.com/repos/ankitects/anki/releases/latest | jq -r .tag_name | sed 's/v//')
+          echo "latest_version=$LATEST" >> $GITHUB_OUTPUT
+
+      - name: Update spec file
+        id: update
+        run: |
+          CURRENT=$(grep "Version:" anki.spec | awk '{print $2}')
+          LATEST=${{ steps.anki.outputs.latest_version }}
+
+          if [ "$CURRENT" != "$LATEST" ]; then
+            echo "New version detected: $LATEST"
+            sed -i "s/^Version:.*/Version: $LATEST/" anki.spec
+            # Reset release to 1 for new versions
+            sed -i "s/^Release:.*/Release: 1%{?dist}/" anki.spec
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "Already up to date ($CURRENT)."
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and Push changes
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add anki.spec
+          git commit -m "Update Anki to version ${{ steps.anki.outputs.latest_version }}"
+          git push
+
+      - name: Trigger COPR Build
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          # Install copr-cli
+          sudo dnf install -y copr-cli
+          # Setup config
+          mkdir -p ~/.config
+          echo "${{ secrets.COPR_CONFIG }}" > ~/.config/copr
+          # Trigger build (replace <username/project> with yours)
+          copr-cli build-package @boydkelly/anki --name anki
