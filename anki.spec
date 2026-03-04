@@ -10,7 +10,6 @@ URL:            https://apps.ankiweb.net/
 # Build tools
 BuildRequires:  python3
 BuildRequires:  python3-pip
-BuildRequires:  python3-virtualenv
 
 # Runtime dependencies
 Requires:       python3
