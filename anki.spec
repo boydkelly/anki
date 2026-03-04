@@ -1,0 +1,90 @@
+%global __requires_exclude_from ^%{_datadir}/anki/.*$
+%global __provides_exclude_from ^%{_datadir}/anki/.*$
+Name:           anki
+Version:        25.09.2
+Release:        1%{?dist}
+Summary:        Anki - a powerful flashcard program
+License:        Gnu Affero Public License
+URL:            https://apps.ankiweb.net/
+BuildArch:      x86_64
+
+# Build tools
+BuildRequires:  python3
+BuildRequires:  python3-pip
+BuildRequires:  python3-virtualenv
+
+# Runtime dependencies
+Requires:       python3
+Requires:       python3-pyqt6
+Requires:       python3-pyqt6-base
+Requires:       python3-pyqt6-sip
+Requires:       python3-pyqt6-webengine
+Requires:       python3-markdown
+Requires:       python3-werkzeug
+Requires:       python3-blinker
+Requires:       python3-click
+Requires:       python3-beautifulsoup4
+Requires:       python3-jsonschema
+Requires:       python3-waitress
+Requires:       python3-orjson
+Requires:       python3-itsdangerous
+Requires:       python3-typing-extensions
+Requires:       python3-requests
+Requires:       python3-wrapt
+Requires:       python3-send2trash
+Requires:       python3-jinja2
+Requires:       qt6-qtwayland
+Requires:       qt6-qtbase-gui
+Requires:       python3-decorator
+
+%description
+Anki is a powerful, intelligent flashcard program. This package installs Anki using pip inside a system-wide virtual environment under /usr/share/anki.
+
+%prep
+# No source to unpack
+
+%build
+# Nothing to build, pip handles it
+
+%install
+# 1. ENSURE DIRECTORY EXISTS
+# This was the missing step in your last run
+mkdir -p %{buildroot}%{_datadir}/anki
+
+# 2. CREATE THE VENV
+# We create this inside the BUILDROOT path
+python3 -m venv --system-site-packages %{buildroot}%{_datadir}/anki
+
+# 3. INSTALL ANKI
+# Use the venv's python directly to run pip
+%{buildroot}%{_datadir}/anki/bin/python3 -m pip install --upgrade pip setuptools wheel
+%{buildroot}%{_datadir}/anki/bin/python3 -m pip install --upgrade --pre aqt[qt6]
+
+# 4. CLEANUP (To prevent the "bad marshal" error)
+# Now that the files exist, we can safely find and delete them
+find %{buildroot}%{_datadir}/anki -name "__pycache__" -type d -exec rm -rf {} +
+find %{buildroot}%{_datadir}/anki -name "*.pyc" -delete
+
+# 5. FIX PATHS (Text files only)
+# This strips the buildroot from shebangs and the venv config
+find %{buildroot}%{_datadir}/anki/bin -type f -exec grep -l "%{buildroot}" {} + | xargs -r sed -i "s|%{buildroot}||g"
+if [ -f %{buildroot}%{_datadir}/anki/pyvenv.cfg ]; then
+    sed -i "s|%{buildroot}||g" %{buildroot}%{_datadir}/anki/pyvenv.cfg
+fi
+
+# 6. CREATE WRAPPER
+mkdir -p %{buildroot}%{_bindir}
+cat > %{buildroot}%{_bindir}/anki << 'EOF'
+#!/bin/sh
+# Use the auto-generated anki script inside the venv
+exec %{_datadir}/anki/bin/anki "$@"
+EOF
+chmod 755 %{buildroot}%{_bindir}/anki
+
+%files
+/usr/share/anki
+/usr/bin/anki
+
+%changelog
+* Wed Mar 04 2026 Boyd Kelly <bkelly@coastsystems.net> - 25.09.2-1
+- Fedora 44 RPM packaging for Anki using system-wide venv and pip
