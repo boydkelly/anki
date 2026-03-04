@@ -1,3 +1,5 @@
+%global __requires_exclude_from ^%{_datadir}/anki/.*$
+%global __provides_exclude_from ^%{_datadir}/anki/.*$
 Name:           anki
 Version:        25.09.2
 Release:        1%{?dist}
