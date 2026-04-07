@@ -1,7 +1,7 @@
 %global __requires_exclude_from ^%{_datadir}/anki/.*$
 %global __provides_exclude_from ^%{_datadir}/anki/.*$
 Name:           anki
-Version: null
+Version: 25.09.2
 Release: 1%{?dist}
 Summary:        Anki - a powerful flashcard program
 License:        Gnu Affero Public License
