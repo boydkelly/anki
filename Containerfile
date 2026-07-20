@@ -6,14 +6,11 @@ RUN rm -f \
   /etc/yum.repos.d/fedora-cisco-openh264.repo \
   /etc/yum.repos.d/fedora-updates-testing.repo && \
   sed -i \
-  -e 's|^metalink=.*|#&|' \
-  -e 's|^#baseurl=http://download.example/pub/fedora|baseurl=http://fedora.mirror.garr.it/mirrors/fedora|' \
-  -e '/^countme=/d' \
-  /etc/yum.repos.d/fedora.repo \
-  /etc/yum.repos.d/fedora-updates.repo && \
-  sed -i "/^\[main\]/a proxy=${PROXY_URL}" /etc/dnf/dnf.conf && \
-  sed -i "/^\[main\]/a install_weak_deps=False" /etc/dnf/dnf.conf && \
-  sed -i "/^\[main\]/a tsflags=nodocs" /etc/dnf/dnf.conf
+  -e 's|^metalink=.*|mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=fedora-$releasever\&arch=$basearch\&country=fr,gb,de|' \
+  /etc/yum.repos.d/fedora.repo && \
+  sed -i \
+  -e 's|^metalink=.*|mirrorlist=http://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f$releasever\&arch=$basearch\&country=fr,gb,de|' \
+  /etc/yum.repos.d/fedora-updates.repo
 
 RUN grep -R "baseurl\|metalink\|countme" /etc/yum.repos.d/
 
