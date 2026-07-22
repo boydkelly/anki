@@ -10,7 +10,6 @@ install() {
   # 1. If venv doesn't exist, create it
   if [[ ! -x "/usr/local/anki/bin/python3" ]]; then
     echo "Creating fresh virtual environment..."
-    echo "Warning: Recreating from scratch. Compiling binary packages can fail if compilers are absent."
     uv venv --python /usr/bin/python3 /usr/local/anki
   fi
 
