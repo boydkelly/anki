@@ -5,12 +5,14 @@ FROM registry.fedoraproject.org/fedora-minimal:45 AS builder
 
 ENV PROXY_URL=http://localhost:3128
 
+ARG COUNTRY="fr"
+
 RUN rm -f \
   /etc/yum.repos.d/fedora-cisco-openh264.repo \
   /etc/yum.repos.d/fedora-updates-testing.repo && \
   sed -i \
-  -e 's|^metalink=.*|#&|' \
-  -e 's|^#baseurl=http://download.example/pub/fedora|baseurl=http://fedora.mirror.garr.it/mirrors/fedora|' \
+  -e 's|^metalink=https://|metalink=http://|' \
+  -e "s|^metalink=.*|&\&country=${COUNTRY}\&protocol=http|" \
   -e '/^countme=/d' \
   /etc/yum.repos.d/fedora.repo \
   /etc/yum.repos.d/fedora-updates.repo && \
@@ -22,7 +24,8 @@ RUN microdnf install -y \
   gcc \
   python3-devel \
   python3-uv \
-  && microdnf clean all
+  && microdnf clean all \
+  && sed -i '/^proxy=/d' /etc/dnf/dnf.conf
 
 # Create venv explicitly linked to system python3 so the generated shebangs match Stage 2
 RUN uv venv --python /usr/bin/python3 /usr/local/anki
@@ -41,12 +44,14 @@ FROM registry.fedoraproject.org/fedora-minimal:45
 
 ENV PROXY_URL=http://localhost:3128
 
+ARG COUNTRY="fr"
+
 RUN rm -f \
   /etc/yum.repos.d/fedora-cisco-openh264.repo \
   /etc/yum.repos.d/fedora-updates-testing.repo && \
   sed -i \
-  -e 's|^metalink=.*|#&|' \
-  -e 's|^#baseurl=http://download.example/pub/fedora|baseurl=http://fedora.mirror.garr.it/mirrors/fedora|' \
+  -e 's|^metalink=https://|metalink=http://|' \
+  -e "s|^metalink=.*|&\&country=${COUNTRY}\&protocol=http|" \
   -e '/^countme=/d' \
   /etc/yum.repos.d/fedora.repo \
   /etc/yum.repos.d/fedora-updates.repo && \
