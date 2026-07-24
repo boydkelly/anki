@@ -6,11 +6,16 @@ export UV_LINK_MODE=copy
 export QSG_RHI_BACKEND=opengl
 export QTWEBENGINE_CHROMIUM_FLAGS="--no-sandbox --disable-features=Vulkan"
 
+# Self-heal existing virtual environment to enable system site packages if it was created without it
+if [[ -f "/usr/local/anki/pyvenv.cfg" ]]; then
+  sed -i 's/include-system-site-packages = false/include-system-site-packages = true/' /usr/local/anki/pyvenv.cfg
+fi
+
 install() {
   # 1. If venv doesn't exist, create it
   if [[ ! -x "/usr/local/anki/bin/python3" ]]; then
     echo "Creating fresh virtual environment..."
-    uv venv --python /usr/bin/python3 /usr/local/anki
+    uv venv --python /usr/bin/python3 --system-site-packages /usr/local/anki
   fi
 
   # 2. Install/upgrade Anki and Aqt using uv
@@ -18,7 +23,7 @@ install() {
   if [[ $# -gt 0 ]]; then
     uv pip install --python /usr/local/anki --no-cache "$@"
   else
-    uv pip install --python /usr/local/anki --no-cache anki aqt
+    uv pip install --python /usr/local/anki --no-cache --no-deps anki aqt
   fi
 }
 
