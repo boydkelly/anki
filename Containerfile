@@ -14,8 +14,7 @@ RUN rm -f \
   -e 's|^metalink=https://|metalink=http://|' \
   -e "s|^metalink=.*|&\&country=${COUNTRY}\&protocol=http|" \
   -e '/^countme=/d' \
-  /etc/yum.repos.d/fedora.repo \
-  /etc/yum.repos.d/fedora-updates.repo && \
+  /etc/yum.repos.d/*.repo && \
   sed -i "/^\[main\]/a proxy=${PROXY_URL}" /etc/dnf/dnf.conf && \
   sed -i "/^\[main\]/a install_weak_deps=False" /etc/dnf/dnf.conf && \
   sed -i "/^\[main\]/a tsflags=nodocs" /etc/dnf/dnf.conf
@@ -53,8 +52,7 @@ RUN rm -f \
   -e 's|^metalink=https://|metalink=http://|' \
   -e "s|^metalink=.*|&\&country=${COUNTRY}\&protocol=http|" \
   -e '/^countme=/d' \
-  /etc/yum.repos.d/fedora.repo \
-  /etc/yum.repos.d/fedora-updates.repo && \
+  /etc/yum.repos.d/*.repo && \
   sed -i "/^\[main\]/a proxy=${PROXY_URL}" /etc/dnf/dnf.conf && \
   sed -i "/^\[main\]/a install_weak_deps=False" /etc/dnf/dnf.conf && \
   sed -i "/^\[main\]/a tsflags=nodocs" /etc/dnf/dnf.conf
